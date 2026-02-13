@@ -398,14 +398,15 @@ class Game {
         this.isTimerRunning = false;
         
         this.sound = new SoundSynth();
+        this.clock = new THREE.Clock();
         this.initThree();
         
-        requestAnimationFrame(() => {
-            this.initBoard();
-            document.getElementById('loading').style.display = 'none';
-        });
+        this.initBoard();
+        document.getElementById('loading').style.display = 'none';
 
-        this.animate();
+        this.renderer.setAnimationLoop((time) => {
+            this.animate(time);
+        });
 
         window.addEventListener('resize', () => this.onWindowResize(), false);
         const container = document.getElementById('canvas-container');
@@ -484,6 +485,7 @@ class Game {
         this.controls.dampingFactor = 0.05;
         this.controls.autoRotate = true;
         this.controls.autoRotateSpeed = 0.5;
+        this.controls.rotateSpeed = 2;
 
         // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.1); 
@@ -990,15 +992,15 @@ class Game {
     }
 
     animate(time) {
-        requestAnimationFrame((t) => this.animate(t));
+        const delta = this.clock.getDelta();
         TWEEN.update(time);
-        this.controls.update();
+        this.controls.update(delta);
         
         if(this.selected) {
              const piece = this.grid[this.selected.x][this.selected.y][this.selected.z];
              if(piece) {
-                 piece.rot.x += 0.02;
-                 piece.rot.y += 0.02;
+                 piece.rot.x += 2 * delta;
+                 piece.rot.y += 2 * delta;
                  const pos = this.getRenderPosition(piece.x, piece.y, piece.z);
                  this.updatePieceMatrix(piece, pos, {x:1.3, y:1.3, z:1.3}, piece.rot);
              }

@@ -390,6 +390,7 @@ class Game {
         this.particles = [];
         this.dummy = new THREE.Object3D();
         this.instancedMeshes = [];
+        this.wireframeMeshes = [];
         this.hasStarted = false; 
         
         // Timer Variables
@@ -532,6 +533,21 @@ class Game {
             iMesh.count = 0;
             this.scene.add(iMesh);
             this.instancedMeshes.push(iMesh);
+
+            // Create Wireframe InstancedMesh
+            const wfMat = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.1,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            const wfMesh = new THREE.InstancedMesh(this.geometries[i], wfMat, maxInstances);
+            wfMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+            wfMesh.count = 0;
+            this.scene.add(wfMesh);
+            this.wireframeMeshes.push(wfMesh);
         }
 
         // 微粒子背景已移除以减少卡顿和耗电
@@ -560,6 +576,12 @@ class Game {
         this.dummy.updateMatrix();
         this.instancedMeshes[piece.type].setMatrixAt(piece.instanceId, this.dummy.matrix);
         this.instancedMeshes[piece.type].instanceMatrix.needsUpdate = true;
+
+        // Update Wireframe Matrix (Scale up 1.02x for glow/thickness effect)
+        this.dummy.scale.multiplyScalar(2);
+        this.dummy.updateMatrix();
+        this.wireframeMeshes[piece.type].setMatrixAt(piece.instanceId, this.dummy.matrix);
+        this.wireframeMeshes[piece.type].instanceMatrix.needsUpdate = true;
     }
 
 
@@ -574,6 +596,7 @@ class Game {
         this.selected = null;
         this.isProcessing = false;
         this.instancedMeshes.forEach(im => { im.count = 0; });
+        this.wireframeMeshes.forEach(wm => { wm.count = 0; });
         
         // Reset Timer
         this.resetTimer();
@@ -603,6 +626,7 @@ class Game {
                     const iMesh = this.instancedMeshes[type];
                     const instanceId = iMesh.count;
                     iMesh.count++;
+                    this.wireframeMeshes[type].count++;
 
                     const pos = this.getRenderPosition(x, y, z);
                     const piece = { type, instanceId, x, y, z, rot: {x:0, y:0, z:0} };

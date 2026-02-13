@@ -478,7 +478,7 @@ class Game {
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         // 调节亮度 (Adjust Brightness) - 降低曝光值使视觉更柔和，保护OLED屏幕
-        this.renderer.toneMappingExposure = 0.6;
+        this.renderer.toneMappingExposure = 0.4;
         document.getElementById('canvas-container').appendChild(this.renderer.domElement);
 
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
@@ -536,10 +536,10 @@ class Game {
 
             // Create Wireframe InstancedMesh
             const wfMat = new THREE.MeshBasicMaterial({
-                color: 0xffffff,
+                color: 0x00FFFF,
                 wireframe: true,
                 transparent: true,
-                opacity: 0.1,
+                opacity: 0.15,
                 blending: THREE.AdditiveBlending,
                 depthWrite: false
             });
@@ -578,7 +578,7 @@ class Game {
         this.instancedMeshes[piece.type].instanceMatrix.needsUpdate = true;
 
         // Update Wireframe Matrix (Scale up 1.02x for glow/thickness effect)
-        this.dummy.scale.multiplyScalar(2);
+        this.dummy.scale.multiplyScalar(1.02);
         this.dummy.updateMatrix();
         this.wireframeMeshes[piece.type].setMatrixAt(piece.instanceId, this.dummy.matrix);
         this.wireframeMeshes[piece.type].instanceMatrix.needsUpdate = true;

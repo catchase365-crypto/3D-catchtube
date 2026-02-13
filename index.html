@@ -473,7 +473,8 @@ class Game {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.2;
+        // 调节亮度 (Adjust Brightness) - 降低曝光值使视觉更柔和，保护OLED屏幕
+        this.renderer.toneMappingExposure = 0.6;
         document.getElementById('canvas-container').appendChild(this.renderer.domElement);
 
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
@@ -483,19 +484,19 @@ class Game {
         this.controls.autoRotateSpeed = 0.5;
 
         // Lights
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); 
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.1); 
         this.scene.add(ambientLight);
-        const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        const mainLight = new THREE.DirectionalLight(0xffffff, 0.6);
         mainLight.position.set(20, 30, 20);
         mainLight.castShadow = true;
         this.scene.add(mainLight);
-        const rimLight1 = new THREE.PointLight(0x9900FF, 1.0, 50);
+        const rimLight1 = new THREE.PointLight(0x9900FF, 0.4, 50);
         rimLight1.position.set(-20, 10, -20);
         this.scene.add(rimLight1);
-        const rimLight2 = new THREE.PointLight(0x00CCFF, 1.0, 50);
+        const rimLight2 = new THREE.PointLight(0x00CCFF, 0.4, 50);
         rimLight2.position.set(20, -10, 20);
         this.scene.add(rimLight2);
-        const coreLight = new THREE.PointLight(0xffffff, 0.5, 40);
+        const coreLight = new THREE.PointLight(0xffffff, 0.2, 40);
         coreLight.position.set(0, 0, 0);
         this.scene.add(coreLight);
 
@@ -511,7 +512,7 @@ class Game {
         ];
         this.wireGeometries = this.geometries.map(g => new THREE.WireframeGeometry(g));
 
-        this.initStarfield();
+        // 微粒子背景已移除以减少卡顿和耗电
     }
 
     updateCameraPos() {
@@ -519,22 +520,7 @@ class Game {
         this.camera.position.set(dist, dist * 0.8, dist);
     }
 
-    initStarfield() {
-        const particlesGeo = new THREE.BufferGeometry();
-        const count = 1500;
-        const posArray = new Float32Array(count * 3);
-        for(let i=0; i<count*3; i++) posArray[i] = (Math.random() - 0.5) * 80;
-        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        const material = new THREE.PointsMaterial({
-            size: 0.15,
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.6,
-            blending: THREE.AdditiveBlending
-        });
-        this.starField = new THREE.Points(particlesGeo, material);
-        this.scene.add(this.starField);
-    }
+    // 移除了耗电的微粒子方法
 
     getRenderPosition(x, y, z) {
         const offset = (CONFIG.gridSize - 1) * this.currentSpacing / 2;
@@ -553,7 +539,7 @@ class Game {
             clearcoat: 1.0,
             clearcoatRoughness: 0.1,
             emissive: CONFIG.colors[type],
-            emissiveIntensity: 0.3,
+            emissiveIntensity: 0.8, // 降低自发光亮度
             transparent: false,
         });
         
@@ -702,7 +688,7 @@ class Game {
         this.sound.playWoodClick();
 
         const highlight = (p, active) => {
-            p.mesh.material.emissiveIntensity = active ? 1.5 : 0.3;
+            p.mesh.material.emissiveIntensity = active ? 0.8 : 0.1;
             p.mesh.children[0].material.opacity = active ? 0.8 : 0.15;
             if(active) {
                 new TWEEN.Tween(p.mesh.scale).to({x:1.2, y:1.2, z:1.2}, 150).yoyo(true).repeat(1).start();
@@ -961,10 +947,7 @@ class Game {
         requestAnimationFrame((t) => this.animate(t));
         TWEEN.update(time);
         this.controls.update();
-        if(this.starField) {
-            this.starField.rotation.y += 0.0003;
-            this.starField.rotation.z += 0.0001;
-        }
+        
         if(this.selected) {
              const piece = this.grid[this.selected.x][this.selected.y][this.selected.z];
              if(piece && piece.mesh) {
